@@ -40,3 +40,18 @@ lazy val taglessStackSafety =
       "org.typelevel" %% "cats" % "0.6.0"
     )
   )
+
+lazy val rankNClassy =
+  project.in(file("ranknclassy")).
+  settings(name := "ranknclassy").
+  settings(scalaSandboxSettings).
+  settings(
+    scalaVersion := "2.11.8",
+    scalacOptions ++= List(
+      "-Ywarn-unused-import"
+    ),
+    libraryDependencies ++= List(
+      "org.typelevel" %% "cats"       % "0.6.1",
+      "io.circe"      %% "circe-core" % "0.5.0-M2"
+    )
+  )
