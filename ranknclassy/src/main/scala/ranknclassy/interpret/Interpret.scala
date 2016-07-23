@@ -20,14 +20,10 @@ object Category {
 }
 
 trait Interpret[C[_[_]], D[_[_]]] {
-  def apply[N[_]: D, A](f: Interpret.Function[C, A]): N[A]
+  def apply[N[_]: D, A](f: Interpret.Constrained[C, A]): N[A]
 }
 
 object Interpret {
-  trait Function[TC[_[_]], A] {
-    def apply[M[_]: TC]: M[A]
-  }
-
   trait Constrained[TC[_[_]], A] {
     def apply[F[_]: TC]: F[A]
   }
@@ -35,19 +31,16 @@ object Interpret {
   implicit def categoryInterpret: Category[Interpret] =
     new Category[Interpret] {
       def id[TC[_[_]]]: Interpret[TC, TC] = new Interpret[TC, TC] {
-        def apply[N[_]: TC, A](f: Function[TC, A]): N[A] = f[N]
+        def apply[N[_]: TC, A](f: Constrained[TC, A]): N[A] = f[N]
       }
 
       def compose[TC[_[_]], TD[_[_]], TE[_[_]]](f: Interpret[TD, TE], g: Interpret[TC, TD]): Interpret[TC, TE] =
         new Interpret[TC, TE] {
-          def apply[N[_]: TE, A](h: Function[TC, A]): N[A] = {
+          def apply[N[_]: TE, A](h: Constrained[TC, A]): N[A] = {
             val gh = new Constrained[TD, A] {
               def apply[F[_]: TD]: F[A] = g(h)
             }
-            val func = new Function[TD, A] {
-              def apply[M[_]: TD]: M[A] = gh[M]
-            }
-            f(func)
+            f(gh)
           }
         }
     }
@@ -127,14 +120,14 @@ object RestApi {
 
 object InterpretApp {
   val runIO: Interpret[MonadHttp, MonadIO] = new Interpret[MonadHttp, MonadIO] {
-    def apply[N[_]: MonadIO, A](f: Interpret.Function[MonadHttp, A]): N[A] = {
+    def apply[N[_]: MonadIO, A](f: Interpret.Constrained[MonadHttp, A]): N[A] = {
       val httpApp = f[HttpApp]
       MonadIO[N].liftIO(httpApp.runHttpApp)
     }
   }
 
   val runMock: Interpret[MonadHttp, MonadReader[?[_], String]] = new Interpret[MonadHttp, MonadReader[?[_], String]] {
-    def apply[N[_], A](f: Interpret.Function[MonadHttp, A])(implicit R: MonadReader[N, String]): N[A] =
+    def apply[N[_], A](f: Interpret.Constrained[MonadHttp, A])(implicit R: MonadReader[N, String]): N[A] =
      f[MockHttp[N, ?]].runMockHttp
   }
 
@@ -151,7 +144,7 @@ object InterpretApp {
       if (arr.isEmpty) List.empty[Int] else arr.toList.map(_.toInt)
     }
 
-    def apply[N[_]: MonadHttp, A](f: Interpret.Function[MonadRestApi, A]): N[A] = {
+    def apply[N[_]: MonadHttp, A](f: Interpret.Constrained[MonadRestApi, A]): N[A] = {
       import RestApi._
       def go(f: RestApiF[N[A]]): N[A] = for {
         response <- MonadHttp[N].httpGet("url")
@@ -168,7 +161,7 @@ object InterpretApp {
   val mockApplication: Interpret[MonadRestApi, MonadReader[?[_], String]] =
     Category[Interpret].compose[MonadRestApi, MonadHttp, MonadReader[?[_], String]](runMock, runRestApi)
 
-  val f = new Interpret.Function[MonadRestApi, List[Int]] {
+  val f = new Interpret.Constrained[MonadRestApi, List[Int]] {
     def apply[M[_]: MonadRestApi]: M[List[Int]] = MonadRestApi[M].getUserIds
   }
 
