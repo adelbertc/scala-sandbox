@@ -168,7 +168,7 @@ object InterpretApp {
   val mockApplication: Interpret[MonadRestApi, MonadReader[?[_], String]] =
     Category[Interpret].compose[MonadRestApi, MonadHttp, MonadReader[?[_], String]](runMock, runRestApi)
 
-	val f = new Interpret.Function[MonadRestApi, List[Int]] {
+  val f = new Interpret.Function[MonadRestApi, List[Int]] {
     def apply[M[_]: MonadRestApi]: M[List[Int]] = MonadRestApi[M].getUserIds
   }
 
