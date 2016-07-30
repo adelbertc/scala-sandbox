@@ -33,7 +33,7 @@ lazy val taglessStackSafety =
   settings(scalaSandboxSettings).
   settings(
     scalaVersion := "2.11.8",
-    scalacOptions ++= List(
+    scalacOptions in compile ++= List(
       "-Ywarn-unused-import"
     ),
     libraryDependencies ++= List(
@@ -47,7 +47,7 @@ lazy val rankNClassy =
   settings(scalaSandboxSettings).
   settings(
     scalaVersion := "2.11.8",
-    scalacOptions ++= List(
+    scalacOptions in compile ++= List(
       "-Ywarn-unused-import"
     ),
     libraryDependencies ++= List(
