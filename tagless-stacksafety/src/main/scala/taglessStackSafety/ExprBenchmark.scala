@@ -13,29 +13,36 @@ import org.openjdk.jmh.annotations.{State => BenchState, _}
 class ExprBenchmark {
   val ITERATIONS = 100000
 
-  def largeExpr[F[_]: Apply](add: Int => F[Unit], exists: Int => F[Boolean]): F[Boolean] =
-    NonEmptyList(0, List.range(1, ITERATIONS - 1)).map(i => add(i) *> exists(i)).reduceLeft(_.map2(_)(_ && _))
+  def largeExprReduceLeft[F[_]: Apply](add: Int => F[Unit], exists: Int => F[Boolean]): F[Boolean] =
+    NonEmptyList(0, List.range(1, ITERATIONS)).map(i => add(i) *> exists(i)).reduceLeft(_.map2(_)(_ && _))
 
-  def tailRecLargeExpr[F[_]: Monad: RecursiveTailRecM](add: Int => F[Unit], exists: Int => F[Boolean]): F[Boolean] =
-    Monad[F].tailRecM((ITERATIONS, true)) {
-      case (n, result) =>
-        if (n == 0) Monad[F].pure(Xor.right(result))
-        else Monad[F].map(add(n) *> exists(n))(b => Xor.left((n - 1, b)))
-    }
+  def largeExprReduceRight[F[_]: Apply](add: Int => F[Unit], exists: Int => F[Boolean]): F[Boolean] =
+    NonEmptyList(0, List.range(1, ITERATIONS)).map(i => add(i) *> exists(i)).reduceRight(_.map2Eval(_)(_ && _)).value
 
-  @Benchmark
-  def tagless = {
-    val safeTaglessSet = tailRecLargeExpr(TaglessSet.add, TaglessSet.exists)
-    safeTaglessSet[State[Set[Int], ?]].runA(Set.empty[Int]).value
+  def largeExprLoop[F[_]: Apply](add: Int => F[Unit], exists: Int => F[Boolean]): F[Boolean] = {
+    def loop(i: Int, res: F[Boolean]): F[Boolean] =
+      if (i == ITERATIONS) res
+      else loop(i + 1, (add(i) *> exists(i)).map2(res)(_ && _))
+
+    loop(1, add(0) *> exists(0))
   }
 
-  @Benchmark
-  def free = {
-    val freeSet = largeExpr(FreeSet.add, FreeSet.exists)
-    freeSet.foldMap(FreeSet.stateInterpreter).runA(Set.empty[Int]).value
-  }
+  def runTagless[A](set: TaglessSet[A]): A = set[State[Set[Int], ?]].runA(Set.empty[Int]).value
 
-  // Blows stack
-  // val taglessSet = largeExpr(TaglessSet.add, TaglessSet.exists)
-  // val taglessResult = taglessSet[State[Set[Int], ?]].runA(Set.empty[Int]).value
+  def runFree[A](set: FreeSet.FreeSet[A]): A = set.foldMap(FreeSet.stateInterpreter).runA(Set.empty[Int]).value
+
+  val safeTaglessSetReduceRight = largeExprReduceRight(TaglessSet.add, TaglessSet.exists)
+  @Benchmark def taglessReduceRight = runTagless(safeTaglessSetReduceRight)
+
+  val safeTaglessSetLoop = largeExprLoop(TaglessSet.add, TaglessSet.exists)
+  @Benchmark def taglessLoop = runTagless(safeTaglessSetLoop)
+
+  val freeSetReduceLeft = largeExprReduceLeft(FreeSet.add, FreeSet.exists)
+  @Benchmark def freeReduceLeft = runFree(freeSetReduceLeft)
+
+  val freeSetReduceRight = largeExprReduceRight(FreeSet.add, FreeSet.exists)
+  @Benchmark def freeReduceRight = runFree(freeSetReduceRight)
+
+  val freeSetLoop = largeExprLoop(FreeSet.add, FreeSet.exists)
+  @Benchmark def freeLoop = runFree(freeSetLoop)
 }
