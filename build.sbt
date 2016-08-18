@@ -42,7 +42,8 @@ lazy val taglessStackSafety =
     libraryDependencies ++= List(
       "org.typelevel" %% "cats" % "0.7.0-SNAPSHOT"
     )
-  )
+  ).
+  enablePlugins(JmhPlugin)
 
 lazy val rankNClassy =
   project.in(file("ranknclassy")).

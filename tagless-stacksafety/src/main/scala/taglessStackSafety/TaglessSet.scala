@@ -19,14 +19,6 @@ object MonadSet {
     def tailRecM[A, B](a: A)(f: A => State[Set[Int], Xor[A, B]]): State[Set[Int], B] =
       StateT.catsDataMonadForStateT[Eval, Set[Int]].tailRecM(a)(f)
   }
-
-  implicit val evalInterpreter: MonadSet[Eval] = new MonadSet[Eval] {
-    def add(int: Int): Eval[Unit] = Eval.now(())
-    def exists(int: Int): Eval[Boolean] = Eval.now(true)
-    def pure[A](x: A): Eval[A] = Eval.now(x)
-    def flatMap[A, B](fa: Eval[A])(f: A => Eval[B]): Eval[B] = fa.flatMap(f)
-    def tailRecM[A, B](a: A)(f: A => Eval[Xor[A, B]]): Eval[B] = defaultTailRecM(a)(f)
-  }
 }
 
 trait TaglessSet[A] {
