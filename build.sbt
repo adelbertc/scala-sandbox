@@ -19,6 +19,9 @@ lazy val commonSettings = List(
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard"
   ),
+  resolvers ++= List(
+    Resolver.sonatypeRepo("snapshots")
+  ),
   libraryDependencies ++= List(
     compilerPlugin("org.spire-math" %% "kind-projector"   % "0.8.0"),
     compilerPlugin("com.milessabin" %  "si2712fix-plugin" % "1.2.0" cross CrossVersion.full)
@@ -37,7 +40,7 @@ lazy val taglessStackSafety =
       "-Ywarn-unused-import"
     ),
     libraryDependencies ++= List(
-      "org.typelevel" %% "cats" % "0.6.0"
+      "org.typelevel" %% "cats" % "0.7.0-SNAPSHOT"
     )
   )
 
