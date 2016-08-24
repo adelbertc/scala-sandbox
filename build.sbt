@@ -31,8 +31,8 @@ lazy val commonSettings = List(
 lazy val scalaSandboxSettings = buildSettings ++ commonSettings
 
 lazy val taglessStackSafety =
-  project.in(file("tagless-stacksafety")).
-  settings(name := "tagless-stacksafety").
+  project.in(file("taglessStackSafety")).
+  settings(name := "taglessStackSafety").
   settings(scalaSandboxSettings).
   settings(
     scalaVersion := "2.11.8",
@@ -40,14 +40,14 @@ lazy val taglessStackSafety =
       "-Ywarn-unused-import"
     ),
     libraryDependencies ++= List(
-      "org.typelevel" %% "cats" % "0.7.0-SNAPSHOT"
+      "org.typelevel" %% "cats" % "0.7.0"
     )
   ).
   enablePlugins(JmhPlugin)
 
 lazy val rankNClassy =
-  project.in(file("ranknclassy")).
-  settings(name := "ranknclassy").
+  project.in(file("rankNClassy")).
+  settings(name := "rankNClassy").
   settings(scalaSandboxSettings).
   settings(
     scalaVersion := "2.11.8",

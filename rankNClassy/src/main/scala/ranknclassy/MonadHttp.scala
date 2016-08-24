@@ -1,4 +1,4 @@
-package ranknclassy
+package rankNClassy
 
 import cats.{Eval, Monad}
 import io.circe.Encoder

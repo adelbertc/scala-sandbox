@@ -1,4 +1,4 @@
-package ranknclassy
+package rankNClassy
 
 import cats.free.Free
 import io.circe.Encoder

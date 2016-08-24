@@ -1,7 +1,7 @@
 package taglessStackSafety
 
 import cats.{Eval, Monad, RecursiveTailRecM}
-import cats.data.{State, StateT, Xor}
+import cats.data.{State, StateT}
 
 trait MonadSet[F[_]] extends Monad[F] with RecursiveTailRecM[F] {
   def add(int: Int): F[Unit]
@@ -16,7 +16,7 @@ object MonadSet {
     def exists(int: Int): State[Set[Int], Boolean] = State.inspect(_.contains(int))
     def pure[A](x: A): State[Set[Int], A] = State.pure(x)
     def flatMap[A, B](fa: State[Set[Int], A])(f: A => State[Set[Int], B]): State[Set[Int], B] = fa.flatMap(f)
-    def tailRecM[A, B](a: A)(f: A => State[Set[Int], Xor[A, B]]): State[Set[Int], B] =
+    def tailRecM[A, B](a: A)(f: A => State[Set[Int], Either[A, B]]): State[Set[Int], B] =
       StateT.catsDataMonadForStateT[Eval, Set[Int]].tailRecM(a)(f)
   }
 }
@@ -36,7 +36,7 @@ object TaglessSet {
         def apply[F[_]: MonadSet]: F[B] = MonadSet[F].flatMap(fa[F])(a => f(a)[F])
       }
 
-      def tailRecM[A, B](a: A)(f: A => TaglessSet[Xor[A, B]]): TaglessSet[B] = new TaglessSet[B] {
+      def tailRecM[A, B](a: A)(f: A => TaglessSet[Either[A, B]]): TaglessSet[B] = new TaglessSet[B] {
         def apply[F[_]: MonadSet]: F[B] = MonadSet[F].tailRecM(a)(a => f(a)[F])
       }
     }

@@ -1,4 +1,4 @@
-package ranknclassy
+package rankNClassy
 
 sealed abstract class IORef[A] {
   protected var value: A

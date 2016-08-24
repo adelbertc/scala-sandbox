@@ -1,6 +1,6 @@
 import cats.data.Kleisli
 
-package object ranknclassy {
+package object rankNClassy {
   type ByteString = String
   type Url = String
 

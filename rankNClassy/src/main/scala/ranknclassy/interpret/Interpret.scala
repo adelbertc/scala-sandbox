@@ -1,9 +1,9 @@
-package ranknclassy.interpret
+package rankNClassy.interpret
 
 import cats.{Applicative, Functor, Monad, MonadReader}
 import cats.free.Free
 import cats.implicits._
-import ranknclassy.{IO, MonadIO}
+import rankNClassy.{IO, MonadIO}
 
 trait Category[F[_[_[_]], _[_[_]]]] {
   def id[TC[_[_]]]: F[TC, TC]
